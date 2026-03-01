@@ -157,10 +157,8 @@ MPP_RET mpp_allocator_get(MppAllocator *allocator, MppAllocatorApi **api,
             p->os_api = allocator_ext_dma;
         } break;
         case MPP_BUFFER_TYPE_DRM : {
-            p->os_api = (mpp_rt_allcator_is_valid(MPP_BUFFER_TYPE_DMA_HEAP)) ? allocator_dma_heap :
-                        (mpp_rt_allcator_is_valid(MPP_BUFFER_TYPE_DRM)) ? allocator_drm :
-                        (mpp_rt_allcator_is_valid(MPP_BUFFER_TYPE_ION)) ? allocator_ion :
-                        allocator_std;
+            mpp_err("DEBUG: FORCING DMA_HEAP\n");
+            p->os_api = allocator_dma_heap;
         } break;
         case MPP_BUFFER_TYPE_DMA_HEAP: {
             p->os_api = (mpp_rt_allcator_is_valid(MPP_BUFFER_TYPE_DMA_HEAP)) ? allocator_dma_heap :
