@@ -1032,26 +1032,19 @@ static void read_soc_name(char *name, rk_s32 size)
     rk_s32 fd = open(path, O_RDONLY);
 
     if (fd < 0) {
-        mpp_err("open %s error\n", path);
+        mpp_err("!!! DEBUG: open %s failed !!!\n", path);
         snprintf(name, size - 1, "unknown");
     } else {
         ssize_t soc_name_len = read(fd, name, size - 1);
         if (soc_name_len > 0) {
-            // 1. Puffer sicher terminieren
             name[soc_name_len] = '\0';
-
-            // 2. Alle Null-Bytes innerhalb der gelesenen Daten durch Leerzeichen ersetzen
-            // Wir nutzen eine Logik, die nicht immer wieder am Anfang des Puffers startet
+            // Alle Null-Bytes durch Leerzeichen ersetzen
             for (rk_s32 i = 0; i < soc_name_len; i++) {
-                if (name[i] == '\0') {
-                    name[i] = ' ';
-                }
+                if (name[i] == '\0') name[i] = ' ';
             }
-            
-            // 3. Letztes Zeichen sicherheitshalber nochmal Null-terminieren
             name[soc_name_len] = '\0';
-
-            mpp_dbg_platform("chip name: %s\n", name);
+            // DAS HIER ERSCHEINT IM LOG:
+            mpp_err("!!! DEBUG_SOC_READ: [%s] !!!\n", name);
         } else {
             snprintf(name, size - 1, "unknown");
         }
@@ -1062,16 +1055,19 @@ static void read_soc_name(char *name, rk_s32 size)
 static const MppSocInfo *check_soc_info(const char *soc_name)
 {
     rk_s32 i;
+    mpp_err("!!! DEBUG_MATCH_START: Looking for match in [%s] !!!\n", soc_name);
 
     for (i = MPP_ARRAY_ELEMS(mpp_soc_infos) - 1; i >= 0; i--) {
         const char *compatible = mpp_soc_infos[i].compatible;
-
+        
         if (strstr(soc_name, compatible)) {
-            mpp_dbg_platform("match chip name: %s\n", compatible);
+            // DAS HIER ZEIGT UNS DEN GEWINNER:
+            mpp_err("!!! DEBUG_MATCH_SUCCESS: Found [%s] at index %d !!!\n", compatible, i);
             return &mpp_soc_infos[i];
         }
     }
 
+    mpp_err("!!! DEBUG_MATCH_FAILED: No chip from table found in DT string !!!\n");
     return NULL;
 }
 
