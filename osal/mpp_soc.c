@@ -1033,24 +1033,28 @@ static void read_soc_name(char *name, rk_s32 size)
 
     if (fd < 0) {
         mpp_err("open %s error\n", path);
-    } else {
-        ssize_t soc_name_len = 0;
-
         snprintf(name, size - 1, "unknown");
-        soc_name_len = read(fd, name, size - 1);
+    } else {
+        ssize_t soc_name_len = read(fd, name, size - 1);
         if (soc_name_len > 0) {
+            // 1. Puffer sicher terminieren
             name[soc_name_len] = '\0';
-            /* replacing the termination character to space */
-            for (char *ptr = name;; ptr = name) {
-                ptr += strnlen(name, size);
-                if (ptr >= name + soc_name_len - 1)
-                    break;
-                *ptr = ' ';
+
+            // 2. Alle Null-Bytes innerhalb der gelesenen Daten durch Leerzeichen ersetzen
+            // Wir nutzen eine Logik, die nicht immer wieder am Anfang des Puffers startet
+            for (rk_s32 i = 0; i < soc_name_len; i++) {
+                if (name[i] == '\0') {
+                    name[i] = ' ';
+                }
             }
+            
+            // 3. Letztes Zeichen sicherheitshalber nochmal Null-terminieren
+            name[soc_name_len] = '\0';
 
             mpp_dbg_platform("chip name: %s\n", name);
+        } else {
+            snprintf(name, size - 1, "unknown");
         }
-
         close(fd);
     }
 }
